@@ -56,6 +56,8 @@ Changes to the LLVM IR
 
 * Added ``usub_cond`` and ``usub_sat`` operations to ``atomicrmw``.
 
+* Introduced `noalias.addrspace` metadata.
+
 * Remove the following intrinsics which can be replaced with a ``bitcast``:
 
   * ``llvm.nvvm.bitcast.f2i``
@@ -68,6 +70,7 @@ Changes to the LLVM IR
   * ``llvm.nvvm.rotate.b32``
   * ``llvm.nvvm.rotate.right.b64``
   * ``llvm.nvvm.rotate.b64``
+
 
 Changes to LLVM infrastructure
 ------------------------------
