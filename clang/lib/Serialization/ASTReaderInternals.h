@@ -125,7 +125,7 @@ struct LazySpecializationInfo {
   // Whether or not this specialization is partial.
   bool IsPartial;
 
-  bool operator==(const LazySpecializationInfo &Other) {
+  bool operator==(const LazySpecializationInfo &Other) const {
     assert(ID != Other.ID || IsPartial == Other.IsPartial);
     return ID == Other.ID;
   }
