@@ -4245,7 +4245,11 @@ void ASTWriter::GenerateSpecializationInfoLookupTable(
 
   auto *Lookups =
       Chain ? Chain->getLoadedSpecializationsLookupTables(D) : nullptr;
-  Generator.emit(LookupTable, Trait, Lookups ? &Lookups->Table : nullptr);
+  // We can't OmitDataWithSameKeyInBase since the lazy load specialization
+  // mechanism assumes that different specializations can share the same
+  // hash key.
+  Generator.emit(LookupTable, Trait, Lookups ? &Lookups->Table : nullptr,
+                 /*OmitDataWithSameKeyInBase=*/false);
 }
 
 uint64_t ASTWriter::WriteSpecializationInfoLookupTable(
