@@ -1759,12 +1759,6 @@ void ASTDeclWriter::VisitClassTemplateDecl(ClassTemplateDecl *D) {
 
 void ASTDeclWriter::VisitClassTemplateSpecializationDecl(
                                            ClassTemplateSpecializationDecl *D) {
-  // FIXME: We need to load the "logical" first declaration before writing
-  // the Redeclarable part. But it may be too expensive to load all the
-  // specializations. Maybe we can find a way to load the "logical" first
-  // declaration only. Or we should try to solve this on the reader side.
-  D->getSpecializedTemplate()->specializations();
-
   RegisterTemplateSpecialization(D->getSpecializedTemplate(), D);
 
   VisitCXXRecordDecl(D);
@@ -1833,12 +1827,6 @@ void ASTDeclWriter::VisitVarTemplateDecl(VarTemplateDecl *D) {
 
 void ASTDeclWriter::VisitVarTemplateSpecializationDecl(
     VarTemplateSpecializationDecl *D) {
-  // FIXME: We need to load the "logical" first declaration before writing
-  // the Redeclarable part. But it may be too expensive to load all the
-  // specializations. Maybe we can find a way to load the "logical" first
-  // declaration only. Or we should try to solve this on the reader side.
-  D->getSpecializedTemplate()->specializations();
-
   RegisterTemplateSpecialization(D->getSpecializedTemplate(), D);
 
   llvm::PointerUnion<VarTemplateDecl *, VarTemplatePartialSpecializationDecl *>
