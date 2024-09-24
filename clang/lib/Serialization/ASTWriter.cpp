@@ -4131,7 +4131,7 @@ public:
   explicit LazySpecializationInfoLookupTrait(ASTWriter &Writer)
       : Writer(Writer) {}
 
-  template <typename Col> data_type getData(Col &&C) {
+  template <typename Col, typename Col2> data_type getData(Col &&C, Col2 &ExistingInfo) {
     unsigned Start = Specs.size();
     for (auto *D : C) {
       bool IsPartial = isa<ClassTemplatePartialSpecializationDecl,
@@ -4141,6 +4141,8 @@ public:
       Specs.push_back({GlobalDeclID(Writer.GetDeclRef(ND).getRawValue()),
                        IsPartial});
     }
+    for (const serialization::reader::LazySpecializationInfo &Info : ExistingInfo)
+      Specs.push_back(Info);
     return std::make_pair(Start, Specs.size());
   }
 
@@ -4240,16 +4242,24 @@ void ASTWriter::GenerateSpecializationInfoLookupTable(
     Iter->second.push_back(cast<NamedDecl>(Specialization));
   }
 
-  for (auto Iter : SpecializationMaps)
-    Generator.insert(Iter.first, Trait.getData(Iter.second), Trait);
-
   auto *Lookups =
       Chain ? Chain->getLoadedSpecializationsLookupTables(D) : nullptr;
-  // We can't OmitDataWithSameKeyInBase since the lazy load specialization
-  // mechanism assumes that different specializations can share the same
-  // hash key.
-  Generator.emit(LookupTable, Trait, Lookups ? &Lookups->Table : nullptr,
-                 /*OmitDataWithSameKeyInBase=*/false);
+
+  for (auto &[HashValue, Specs] : SpecializationMaps) {
+    SmallVector<serialization::reader::LazySpecializationInfo, 16> ExisitingSpecs;
+    // We have to merge the lookup table manually here. We can't depend on the merge mechanism
+    // offered by clang::serialization::MultiOnDiskHashTableGenerator since that generator
+    // assumes the we'll get the same value with the same key.
+    // And also underlying llvm::OnDiskChainedHashTableGenerator assumes that we won't insert
+    // the values with the same key twice.
+    // So we have to merge the lookup table here manually.
+    if (Lookups)
+      ExisitingSpecs = Lookups->Table.find(HashValue);
+
+    Generator.insert(HashValue, Trait.getData(Specs, ExisitingSpecs), Trait);
+  }
+
+  Generator.emit(LookupTable, Trait, Lookups ? &Lookups->Table : nullptr);
 }
 
 uint64_t ASTWriter::WriteSpecializationInfoLookupTable(

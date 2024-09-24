@@ -306,7 +306,7 @@ public:
   }
 
   void emit(llvm::SmallVectorImpl<char> &Out, WriterInfo &Info,
-            const BaseTable *Base, bool OmitDataWithSameKeyInBase = true) {
+            const BaseTable *Base) {
     using namespace llvm::support;
 
     llvm::raw_svector_ostream OutStream(Out);
@@ -326,7 +326,7 @@ public:
 
         // Add all merged entries from Base to the generator.
         for (auto &KV : Merged->Data) {
-          if (!OmitDataWithSameKeyInBase || !Gen.contains(KV.first, Info))
+          if (!Gen.contains(KV.first, Info))
             Gen.insert(KV.first, Info.ImportData(KV.second), Info);
         }
       } else {
