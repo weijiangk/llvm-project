@@ -6,4 +6,5 @@ cd ${here}
 # first arg for opt source file
 src=$1
 out=$(basename $1)~
+# -debug-pass-manager to view pipeline
 ${llvm}/opt -passes=loop-rotate -debug-only=loop-rotate -S ${src} -o ${out}

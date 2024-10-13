@@ -992,6 +992,14 @@ bool LoopRotate::simplifyLoopLatch(Loop *L) {
   if (!Jmp || !Jmp->isUnconditional())
     return false;
 
+  LLVM_DEBUG(
+    dbgs() << "LoopRotation: latch "
+           << (Latch->hasName() ? Latch->getName() : "unamed")
+           << " term.";
+    Jmp->print(dbgs(), true);
+    dbgs() << "\n";
+  );
+
   BasicBlock *LastExit = Latch->getSinglePredecessor();
   if (!LastExit || !L->isLoopExiting(LastExit))
     return false;
