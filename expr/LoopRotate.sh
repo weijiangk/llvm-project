@@ -1,5 +1,5 @@
 here="$(dirname "$(realpath "$0")")"
-llvm=${here}/../../../build/bin
+llvm=${here}/../build/bin
 
 cd ${here}
 
