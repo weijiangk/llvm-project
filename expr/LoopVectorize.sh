@@ -9,4 +9,4 @@ mkdir tmp~
 src=$1
 out=$(basename $1)
 # -debug-pass-manager to view pipeline
-${llvm}/opt -passes=loop-rotate -debug-only=loop-rotate -S ${src} -o tmp~/${out}
+${llvm}/opt -passes=loop-vectorize -debug-only=loop-vectorize -stats -S ${src} -o tmp~/${out}
