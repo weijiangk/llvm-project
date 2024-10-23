@@ -173,6 +173,8 @@ const char LLVMLoopVectorizeFollowupEpilogue[] =
 
 STATISTIC(LoopsVectorized, "Number of loops vectorized");
 STATISTIC(LoopsAnalyzed, "Number of loops analyzed for vectorization");
+STATISTIC(LoopsIllegal, "Number of loops that does not pass illegality check");
+STATISTIC(LoopsUnprofit, "Number of loops that does not pass profitability check");
 STATISTIC(LoopsEpilogueVectorized, "Number of epilogues vectorized");
 
 static cl::opt<bool> EnableEpilogueVectorization(
@@ -9877,6 +9879,7 @@ bool LoopVectorizePass::processLoop(Loop *L) {
   if (!LVL.canVectorize(EnableVPlanNativePath)) {
     LLVM_DEBUG(dbgs() << "LV: Not vectorizing: Cannot prove legality.\n");
     Hints.emitRemarkWithHints();
+    LoopsIllegal++;
     return false;
   }
 
@@ -9935,6 +9938,7 @@ bool LoopVectorizePass::processLoop(Loop *L) {
             "loop trip count is too low, avoiding vectorization",
             "LowTripCount", ORE, L);
         Hints.emitRemarkWithHints();
+        LoopsUnprofit++;
         return false;
       }
     }
@@ -9962,6 +9966,7 @@ bool LoopVectorizePass::processLoop(Loop *L) {
         "loop not vectorized due to unsafe FP support.",
         "UnsafeFP", ORE, L);
     Hints.emitRemarkWithHints();
+    LoopsIllegal++;
     return false;
   }
 
@@ -9983,6 +9988,7 @@ bool LoopVectorizePass::processLoop(Loop *L) {
     LLVM_DEBUG(dbgs() << "LV: loop not vectorized: cannot prove it is safe to "
                          "reorder floating-point operations\n");
     Hints.emitRemarkWithHints();
+    LoopsIllegal++;
     return false;
   }
 
@@ -10033,6 +10039,7 @@ bool LoopVectorizePass::processLoop(Loop *L) {
       });
       LLVM_DEBUG(dbgs() << "LV: Too many memory checks needed.\n");
       Hints.emitRemarkWithHints();
+      LoopsUnprofit++;
       return false;
     }
   }
@@ -10097,6 +10104,8 @@ bool LoopVectorizePass::processLoop(Loop *L) {
                                       L->getStartLoc(), L->getHeader())
              << IntDiagMsg.second;
     });
+    // Include scenarios with vect/interl explicitly disabled
+    LoopsUnprofit++;
     return false;
   } else if (!VectorizeLoop && InterleaveLoop) {
     LLVM_DEBUG(dbgs() << "LV: Interleave Count is " << IC << '\n');
